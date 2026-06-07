@@ -2,7 +2,7 @@
 
 **FIFA Survivor** is a fast-paced, web-based arcade survival game. You play as a stressed organizer dodging an endless, scaling swarm of "bugs" and "syntax errors." Survive as long as you can, rack up the highest score, and keep the system from crashing!
 
-Play it live here: https://mdfahimhassan.github.io/BUCC-Survivor/
+Play it live here: https://mdfahimhassan.github.io/FIFA-Survivor/
 
 ## 🎮 Features
 * **Auto-Fire Combat:** Focus purely on movement and dodging; your character automatically targets and blasts the nearest bug with blue energy balls.
