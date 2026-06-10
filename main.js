@@ -8,6 +8,8 @@ kaboom({
     loadingScreen: false, // Disable default loading screen for custom implementation
 });
 
+document.title = "FIFA Survivor";
+
 // --- LOAD CUSTOM SPORT FONTS ---
 loadFont("bebas", "fonts/OutlastRegular.ttf");
 loadFont("teko", "fonts/Teko-Bold.ttf");
