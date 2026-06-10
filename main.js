@@ -30,6 +30,20 @@ loadSprite("coin_3d", "sprites/coin_3d.png", {
 // Load the background and players
 loadSprite("stadium", "sprites/stadium.png");
 loadSprite("players", "sprites/players.png");
+// --- LOAD AUDIO ASSETS ---
+loadSound("menu_theme", "audios/menu_theme.mp3");
+loadSound("ui_hover", "audios/ui_hover.mp3");
+loadSound("ui_click", "audios/ui_click.mp3");
+loadSound("stadium_ambience", "audios/stadium_ambience.mp3");
+loadSound("crowd_cheer", "audios/crowd_cheer.mp3");
+loadSound("chime", "audios/chime.mp3");
+loadSound("coin", "audios/coin_ping.mp3");
+loadSound("heavy_whoosh", "audios/heavy_whoosh.mp3");
+loadSound("kickoff_whistle", "audios/kick_off.mp3");
+loadSound("ball_kick", "audios/ball_kick.mp3");
+
+// Global variable to hold our background music track
+let bgm;
 
 const countries = [
     "algeria", "argentina", "australia", "austria", "belgium", "bosnia&herzegovina", "brazil", "cabo_verde",
@@ -254,6 +268,12 @@ scene("loading", () => {
 // 3. MAIN TITLE SCREEN
 // ==========================================
 scene("menu", () => {
+    // Start music if it doesn't exist yet, or unpause it if returning from a game
+    if (!bgm) {
+        bgm = play("menu_theme", { loop: true, volume: 0.35 });
+    } else if (bgm.paused) {
+        bgm.paused = false;
+    }
     const bg = add([
         sprite("players"),
         pos(center()),
@@ -332,17 +352,12 @@ scene("menu", () => {
 
     // 3. Smooth Hover logic
     playBtn.onHover(() => {
+        play("ui_hover", { volume: 0.5 }); // Subtle tick
         setCursor("pointer");
-        playBtn.outline.color = rgb(255, 215, 0); // Optional: Glows gold on hover
+        playBtn.outline.color = rgb(255, 215, 0);
 
         if (menuBtnTween) menuBtnTween.cancel();
-        menuBtnTween = tween(
-            playBtn.scale,
-            vec2(1.06), // Grow by 6%
-            0.15,
-            (val) => playBtn.scale = val,
-            easings.easeOutQuad
-        );
+        menuBtnTween = tween(playBtn.scale, vec2(1.06), 0.15, (v) => playBtn.scale = v, easings.easeOutQuad);
     });
 
     playBtn.onHoverEnd(() => {
@@ -361,6 +376,8 @@ scene("menu", () => {
 
     // Click logic (keep whatever you had inside here)
     playBtn.onClick(() => {
+        play("ui_click", { volume: 1.0 }); // Crisp click
+        setCursor("default");
         go("start");
     });
 });
@@ -392,13 +409,13 @@ scene("start", () => {
         color(0, 0, 0),
         opacity(0.9)
     ]);
-    
+
     // --- PREMIUM TITLE: CHAMPAGNE GOLD FACE ---
     add([
         text("SELECT YOUR TEAM", { size: 52, font: "bebas" }),
         pos(center().x, height() * 0.14),
         anchor("center"),
-        color(255, 228, 160), 
+        color(255, 228, 160),
         outline(3, rgb(15, 15, 15))
     ]);
 
@@ -410,7 +427,7 @@ scene("start", () => {
         color(0, 0, 0),
         opacity(0.85)
     ]);
-    
+
     // --- PREMIUM SUBTITLE: ICE-SILVER FACE ---
     add([
         text("CLICK A NATION FROM THE GRID TO CHOOSE YOUR SQUAD", { size: 16, font: "bebas", letterSpacing: 2 }),
@@ -492,22 +509,30 @@ scene("start", () => {
         const y = gridStart.y + row * yGap;
 
         const btn = add([
-            rect(cellW, cellH, { radius: 3 }), 
+            rect(cellW, cellH, { radius: 3 }),
             pos(x, y),
             anchor("topleft"),
-            color(10, 15, 12), 
-            opacity(0.75),      
-            outline(1, rgb(255, 255, 255)), 
+            color(10, 15, 12),
+            opacity(0.75),
+            outline(1, rgb(255, 255, 255)),
             area(),
             fixed(),
             z(1),
             { country }
         ]);
 
-        // Changes border color on hover for premium selection feel
-        btn.onHover(() => { btn.outline.color = rgb(0, 255, 150); setCursor("pointer"); });
-        btn.onHoverEnd(() => { btn.outline.color = rgb(255, 255, 255); setCursor("default"); });
-        
+        // Changes border color on hover + plays ultra-quiet tick
+        btn.onHover(() => {
+            play("ui_hover", { volume: 0.35 }); // Very quiet so it doesn't spam the player's ears
+            btn.outline.color = rgb(0, 255, 150);
+            setCursor("pointer");
+        });
+
+        btn.onHoverEnd(() => {
+            btn.outline.color = rgb(255, 255, 255);
+            setCursor("default");
+        });
+
         add([
             text(displayName(country), { size: 11, font: "bebas" }),
             pos(x + cellW / 2, y + cellH / 2),
@@ -516,8 +541,9 @@ scene("start", () => {
             fixed(),
             z(2)
         ]);
-        
+
         btn.onClick(() => {
+            play("ui_click", { volume: 0.85 }); // Confirmation pop
             myTeamSprite = country;
             updateTeamDisplay();
         });
@@ -547,42 +573,58 @@ scene("start", () => {
         color(255, 255, 255)
     ]);
 
-    confirmBtn.onHover(() => { 
-        setCursor("pointer"); 
-        confirmBtn.outline.color = rgb(255, 215, 0); // Gold highlight
-        
+    confirmBtn.onHover(() => {
+        play("ui_hover", { volume: 0.2 });
+        setCursor("pointer");
+        confirmBtn.outline.color = rgb(255, 215, 0);
+
         if (startBtnTween) startBtnTween.cancel();
-        startBtnTween = tween(
-            confirmBtn.scale,
-            vec2(1.06), 
-            0.15,
-            (val) => confirmBtn.scale = val,
-            easings.easeOutQuad
-        );
+        startBtnTween = tween(confirmBtn.scale, vec2(1.06), 0.15, (v) => confirmBtn.scale = v, easings.easeOutQuad);
     });
-    
-    confirmBtn.onHoverEnd(() => { 
-        setCursor("default"); 
+
+    confirmBtn.onHoverEnd(() => {
+        setCursor("default");
         confirmBtn.outline.color = rgb(0, 255, 150); // Reset to neon
-        
+
         if (startBtnTween) startBtnTween.cancel();
         startBtnTween = tween(
             confirmBtn.scale,
-            vec2(1.0), 
+            vec2(1.0),
             0.15,
             (val) => confirmBtn.scale = val,
             easings.easeOutQuad
         );
     });
 
-    confirmBtn.onClick(() => go("game"));
-    onKeyPress("enter", () => go("game"));
+    confirmBtn.onClick(() => {
+        play("ui_click", { volume: 0.5 });
+        if (bgm) bgm.paused = true; // Cut the menu music!
+        go("game");
+    });
+
+    onKeyPress("enter", () => {
+        play("ui_click", { volume: 0.5 });
+        if (bgm) bgm.paused = true;
+        go("game");
+    });
 });
 
 // ==========================================
 // 5. MAIN GAME SCENE
 // ==========================================
 scene("game", () => {
+    // 🏟️ Bamped up the background texture volume to 0.5 so it's fully audible
+    const gameAmbience = play("stadium_ambience", {
+        loop: true,
+        volume: 0.5 
+    });
+
+    // 🏁 Wrapped in a tiny 0.15-second delay to prevent the audio context from clipping it on frame 0,
+    // and increased the whistle volume to 0.8 so it cuts through clearly!
+    wait(0.15, () => {
+        play("kickoff_whistle", { volume: 1.0 });
+    });
+
     // Reset tactical state engine values cleanly
     score = 0; currentPhase = 1; currentEnemySpeed = 110; currentSpawnRate = 0.65; spawnTimer = 0; goldenBallsCollected = 0;
     upgFireRateLevel = 0; upgSpeedLevel = 0; upgMagnetLevel = 0; playerSpeed = 180; fireRate = 0.6; magnetRadius = 35;
@@ -781,20 +823,36 @@ scene("game", () => {
     }
 
     function advancePhase() {
-        currentEnemySpeed += 22; currentSpawnRate *= 0.80;
+        currentEnemySpeed += 22;
+        currentSpawnRate *= 0.80;
+
+        // 📣 CRITICAL RULE: Trigger crowd roar instantly ONLY from level 2 up to level 10
+        if (currentPhase >= 2 && currentPhase <= 10) {
+            play("crowd_cheer", { volume: 0.45 });
+        }
+
         let phaseText = "MATCH DAY " + currentPhase;
         if (currentPhase === 4) phaseText = "ROUND OF 16";
         if (currentPhase === 7) phaseText = "QUARTER FINALS";
         if (currentPhase === 10) phaseText = "THE WORLD CUP FINAL";
 
-        phaseLabel.text = phaseText; phaseLabel.scale = vec2(2); phaseLabel.pos = center();
-        phaseLabelShadow.text = phaseText; phaseLabelShadow.scale = vec2(2); phaseLabelShadow.pos = center().add(3, 3);
+        // 🌟 1. Reset and update the main foreground label
+        phaseLabel.text = phaseText;
+        phaseLabel.scale = vec2(2);
+        phaseLabel.pos = center();
 
+        // 🌟 2. Reset and update the background shadow layer so it doesn't say "GROUP STAGE"
+        phaseLabelShadow.text = phaseText;
+        phaseLabelShadow.scale = vec2(2);
+        phaseLabelShadow.pos = center().add(3, 3);
+
+        // 🌟 3. Tween them both up to the top header position in perfect unison
         wait(1.5, () => {
             tween(phaseLabel.pos, vec2(width() / 2, 36), 1, (p) => {
                 phaseLabel.pos = p;
-                phaseLabelShadow.pos = p.add(3, 3);
+                phaseLabelShadow.pos = p.add(3, 3); // Maintains the clean drop-shadow offset
             }, easings.easeOutQuad);
+            
             tween(2, 1, 1, (s) => {
                 phaseLabel.scale = vec2(s);
                 phaseLabelShadow.scale = vec2(s);
@@ -802,13 +860,21 @@ scene("game", () => {
         });
     }
 
+    // --- CLEANED UP AUTOMATIC SHOOTING ENGINE & KICK AUDIO ---
     let shootTimer = 0;
     onUpdate(() => {
         if (isUpgrading) return;
         shootTimer += dt();
         if (shootTimer >= fireRate) {
-            shootTimer = 0; const nearestEnemy = getNearestEnemy(); if (!nearestEnemy) return;
-            const diff = nearestEnemy.pos.sub(player.pos); const baseAngle = Math.atan2(diff.y, diff.x);
+            shootTimer = 0;
+            const nearestEnemy = getNearestEnemy();
+            if (!nearestEnemy) return;
+
+            // Play tactile ball kick sound with minor pitch variation per ball released
+            play("ball_kick", { volume: 0.14, detune: rand(-90, 90) });
+
+            const diff = nearestEnemy.pos.sub(player.pos);
+            const baseAngle = Math.atan2(diff.y, diff.x);
             const spreadAngles = hasShotgun ? [-15, 0, 15] : [0];
 
             spreadAngles.forEach((spreadOffset) => {
@@ -821,17 +887,22 @@ scene("game", () => {
         }
     });
 
-    // UNIFIED BICYCLE KICK (With Screen Shockwave Shake mechanics merged!)
+    // --- UNIFIED BICYCLE KICK WITH MIXED EFFECTS ---
     onKeyPress("space", () => {
         if (isUpgrading || bicycleCooldown > 0) return;
         bicycleCooldown = BICYCLE_COOLDOWN_MAX;
 
+        // Play physical cleaving sound effect right as the wave generates
+        play("heavy_whoosh", { volume: 0.55 });
+
         // Massive shockwave shake engine integration
         shake(6);
 
+        // Created exactly once with premium visual opacity layer
         const kickWave = add([
             circle(10), pos(player.pos), color(255, 255, 255), opacity(0.52), anchor("center"), z(65)
         ]);
+
         tween(10, BICYCLE_AOE_RADIUS, 0.32, (r) => kickWave.radius = r, easings.easeOutQuad);
         tween(0.52, 0, 0.32, (o) => kickWave.opacity = o, easings.easeOutQuad);
         wait(0.32, () => destroy(kickWave));
@@ -922,8 +993,12 @@ scene("game", () => {
 
     onCollide("player", "goldenball", (p, cr) => {
         destroy(cr);
+
+        // Play premium chime sound effect
+        play("chime", { volume: 0.5 });
+
         goldenBallsCollected++;
-        let requiredBalls = 3 + currentPhase * 2;
+        let requiredBalls = currentPhase * 5;
 
         if (currentPhase < 10) {
             if (goldenBallsCollected >= requiredBalls) {
@@ -934,6 +1009,7 @@ scene("game", () => {
             crystalLabel.text = `${goldenBallsCollected} / ${3 + currentPhase * 2}`;
         } else {
             if (goldenBallsCollected >= requiredBalls) {
+                gameAmbience.stop(); // 🌟 Safely stop stadium atmosphere
                 go("win", score);
             }
             crystalLabel.text = `WINNER`;
@@ -942,14 +1018,26 @@ scene("game", () => {
 
     onCollide("player", "foulZone", (p, t) => {
         if (shieldActive) { shieldActive = false; shieldCooldown = 30; destroy(t); spawnParticles(p.pos, rgb(255, 255, 255)); return; }
-        destroy(player); go("lose", score, currentPhase);
+        destroy(player);
+        gameAmbience.stop(); // 🌟 Safely stop stadium atmosphere
+        go("lose", score, currentPhase);
     });
 
-    onCollide("player", "coin", (p, c) => { destroy(c); score += 1; scoreLabel.text = score; });
+    onCollide("player", "coin", (p, c) => {
+        destroy(c);
+
+        // Play standard coin collection ping (with tiny detune to keep it crispy)
+        play("coin", { volume: 0.28, detune: rand(-40, 40) });
+
+        score += 1;
+        scoreLabel.text = score;
+    });
 
     onCollide("player", "enemy", (p, e) => {
         if (shieldActive) { shieldActive = false; shieldCooldown = 30; destroy(e); spawnParticles(p.pos, rgb(255, 255, 255)); return; }
-        destroy(p); go("lose", score, currentPhase);
+        destroy(p);
+        gameAmbience.stop(); // 🌟 Safely stop stadium atmosphere
+        go("lose", score, currentPhase);
     });
 });
 
