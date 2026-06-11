@@ -38,7 +38,10 @@ Open index.html inside any modern web browser (or run it using VS Code's Live Se
 
 ⚠️ Note: To connect to the database, ensure your own localized secret web app configuration object keys are correctly initialized via firebase.initializeApp(firebaseConfig) near the top of your core script file.
 
-🏆 Current Feature Set
+---
+
+## 🏆 Current Feature Set
+
 ○ Ultra-smooth looping 60FPS graphical star fields and canvas layering.
 
 ○ Immersive stadium audio ambiance and responsive UI hover sound effects.
