@@ -5,12 +5,12 @@
 kaboom({
     background: [10, 14, 12], // Deep stadium dark green/grey
     clearColor: [0, 0, 0, 1],
-    loadingScreen: false, // Disable default loading screen for custom implementation
+    loadingScreen: false, // Disabled default loading screen for custom implementation
 });
 
 document.title = "FIFA Survivor";
 
-// --- LOAD CUSTOM SPORT FONTS ---
+// --- CUSTOM SPORT FONTS ---
 loadFont("bebas", "fonts/OutlastRegular.ttf");
 loadFont("teko", "fonts/Teko-Bold.ttf");
 
@@ -24,17 +24,17 @@ loadSprite("loading_ball", "sprites/loading_ball.png");
 loadSprite("slide_icon", "sprites/slide_icon.png");
 loadSprite("fifa26", "sprites/fifa_26.png");
 loadSprite("my_club", "sprites/club_logo.png");
+loadSprite("stadium", "sprites/stadium.png");
+loadSprite("players", "sprites/players.png");
 
-// Ultra-smooth 60FPS 3D looping Star sheet
+// Ultra-smooth 60FPS 3D looping Star sheet (For future 3d modelling but not using currently to save on file size and load times)
 loadSprite("coin_3d", "sprites/coin_3d.png", {
     sliceX: 9,
     anims: {
         spin: { from: 0, to: 7, loop: true, speed: 45 }
     }
 });
-// Load the background and players
-loadSprite("stadium", "sprites/stadium.png");
-loadSprite("players", "sprites/players.png");
+
 // --- LOAD AUDIO ASSETS ---
 loadSound("menu_theme", "audios/menu_theme.mp3");
 loadSound("ui_hover", "audios/ui_hover.mp3");
@@ -54,7 +54,7 @@ let bgm;
 let currentPlayerName = "Ren";
 let currentPlayerTag = "#01";
 
-// 🌟 Initialize Firebase Connection
+// Initializing Firebase Connection
 const firebaseConfig = {
     apiKey: "AIzaSyCyd3jbU1m_Zshl63C1NBHN_AJgLxUCQxs",
     authDomain: "fifa-survivor.firebaseapp.com",
@@ -69,7 +69,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const scoresCollection = db.collection("leaderboard");
 
-// 🏷️ CLOUD FUNCTION: Query database to check tag duplicates
+// CLOUD FUNCTION: Query database to check tag duplicates
 async function generateUniqueTag(enteredName) {
     try {
         const snapshot = await scoresCollection.where("name_lowercase", "==", enteredName.toLowerCase()).get();
@@ -81,13 +81,13 @@ async function generateUniqueTag(enteredName) {
     }
 }
 
-// 💾 AUTOMATED LIVE DATABASE SEEDER
+// AUTOMATED LIVE DATABASE SEEDER
 async function seedInitialBenchmarks() {
     try {
         // Check if your specific developer benchmark is already in the database
         const benchmarkCheck = await scoresCollection.where("name", "==", "Fahim (Dev)").get();
 
-        // If it's NOT in the database, upload the benchmarks alongside the real scores!
+        // It's just for the club fair to motivate players and give them a target to beat, so we won't add duplicates if it already exists
         if (benchmarkCheck.empty) {
             console.log("Benchmarks missing. Injecting R&D targets alongside existing scores...");
             const benchmarks = [
@@ -110,10 +110,10 @@ async function seedInitialBenchmarks() {
     }
 }
 
-// Fire the seeder engine safely in the background
 seedInitialBenchmarks();
 
-// 💾 CLOUD FUNCTION: Upload match score data to Google Firestore
+// CLOUD FUNCTION: Upload match score data to Google Firestore
+
 async function saveScoreToLeaderboard(finalScore) {
     try {
         await scoresCollection.add({
@@ -128,7 +128,8 @@ async function saveScoreToLeaderboard(finalScore) {
     }
 }
 
-// 🏆 CLOUD FUNCTION: Pull real-time global top 5 scores
+// CLOUD FUNCTION: Pull real-time global top 5 scores
+
 async function getGlobalTopFive() {
     try {
         const snapshot = await scoresCollection.orderBy("score", "desc").limit(5).get();
@@ -159,7 +160,7 @@ function addBranding() {
         z(100)
     ]);
 
-    // Top-Right: Your Club Logo
+    // Top-Right: BUCC Logo
     add([
         sprite("my_club"),
         pos(width() - 15, 10),
@@ -169,7 +170,7 @@ function addBranding() {
         z(100)
     ]);
 
-    // Bottom-Center: Solo Project Credit
+    // Bottom-Center: Solo Project Credit (Hehe :)
     add([
         text("A Solo Project by Md. Fahim Hassan", { size: 14, font: "teko" }),
         pos(width() / 2, height() - 20),
@@ -179,6 +180,21 @@ function addBranding() {
         opacity(0.6),
         z(100)
     ]);
+}
+
+function advancePhase() {
+    // Increase difficulty with each phase, but in a way that feels more natural and less punishing than straight linear scaling
+    currentEnemySpeed += 22;
+    currentSpawnRate *= 0.80;
+}
+
+function getPhaseName(phase) {
+    const names = [
+        "GROUP STAGE (A-D)", "GROUP STAGE (E-H)", "ROUND OF 32",
+        "ROUND OF 16", "QUARTER FINALS", "SEMI FINALS",
+        "3RD PLACE PLAY-OFF", "ROAD TO THE FINAL", "FINAL COUNTDOWN", "WORLD CUP FINAL"
+    ];
+    return names[phase - 1] || "WORLD CUP CHAMPION";
 }
 
 const countries = [
@@ -317,21 +333,21 @@ scene("interaction_gate", () => {
         color(0, 215, 140) // Tournament Green
     ]);
 
-    // Make the text pulse smoothly so it looks like an arcade screen
+    // Pulsing smooth text
     onUpdate(() => {
         promptText.opacity = wave(0.3, 1, time() * 4);
     });
 
-    // 🌟 THE MAGIC FIX: The moment they click anywhere, audio is unlocked!
+    // THE MAGIC FIX: The moment user clicks anywhere, audio is unlocked!
     onMousePress(() => {
         // Start the menu theme music smoothly now that the browser allows it
         bgm = play("menu_theme", { loop: true, volume: 0.35 });
 
-        // Move along to your beautiful loading screen sequence
+        // Move to loading screen sequence
         go("loading");
     });
 
-    // Also support keyboard users hitting any key to enter
+    // Also supports keyboard users hitting any key to enter
     onKeyPress(() => {
         bgm = play("menu_theme", { loop: true, volume: 0.35 });
         go("loading");
@@ -441,7 +457,7 @@ scene("loading", () => {
 // ==========================================
 scene("menu", () => {
     addBranding();
-    // Start music if it doesn't exist yet, or unpause it if returning from a game
+    // Starts music if it doesn't exist yet, or unpauses it if returning from a game
     if (!bgm) {
         bgm = play("menu_theme", { loop: true, volume: 0.35 });
     } else if (bgm.paused) {
@@ -552,7 +568,7 @@ scene("menu", () => {
         play("ui_click", { volume: 1.0 });
         setCursor("default");
 
-        // 🔒 STADIUM ACCREDITATION GATE: Force a unique non-empty manager name
+        // STADIUM ACCREDITATION GATE: Force a unique non-empty manager name
         let rawName = "";
         while (true) {
             rawName = prompt("ENTER YOUR NAME, MANAGER! :", "");
@@ -834,7 +850,6 @@ scene("instructions", () => {
         z(1)
     ]);
 
-    // Apply corporate branding over background assets
     addBranding();
 
     // 3. Header Text
@@ -892,13 +907,13 @@ scene("game", () => {
     let isDashing = false;
     let dashCooldown = 0;
     const DASH_MAX_COOLDOWN = 20;
-    // 🏟️ Bamped up the background texture volume to 0.5 so it's fully audible
+    // Bamped up the background texture volume to 0.5 so it's fully audible
     const gameAmbience = play("stadium_ambience", {
         loop: true,
         volume: 0.5
     });
 
-    // 🏁 Wrapped in a tiny 0.15-second delay to prevent the audio context from clipping it on frame 0,
+    // Wrapped in a tiny 0.15-second delay to prevent the audio context from clipping it on frame 0,
     // and increased the whistle volume to 0.8 so it cuts through clearly!
     wait(0.15, () => {
         play("kickoff_whistle", { volume: 1.0 });
@@ -976,6 +991,31 @@ scene("game", () => {
             phaseLabel.scale = vec2(s);
             phaseLabelShadow.scale = vec2(s);
         }, easings.easeOutQuad);
+    });
+
+    // Create a flag so this only happens once per run
+    let shopNotified = false;
+
+    // Check the player's score every frame
+    onUpdate(() => {
+        // When they hit 40 score (enough to buy speed/fire rate)...
+        if (score >= 40 && !shopNotified) {
+            shopNotified = true; // Lock it so it doesn't spam
+
+            // Spawn a massive text directly in the center of the action
+            add([
+                text("UPGRADES READY!\nPRESS [E] NOW!", { size: 42, font: "bebas", align: "center" }),
+                pos(center().x, center().y - 120), // Just above the player
+                anchor("center"),
+                color(0, 255, 150), // Bright Neon Green
+                outline(3, rgb(10, 10, 10)),
+                fixed(),
+                z(200),
+                // This makes it float up slowly and fade out after 3 seconds!
+                lifespan(3, { fade: 0.5 }),
+                move(UP, 20)
+            ]);
+        }
     });
 
     // ==========================================
@@ -1153,7 +1193,7 @@ scene("game", () => {
         currentEnemySpeed += 22;
         currentSpawnRate *= 0.80;
 
-        // 📣 CRITICAL RULE: Trigger crowd roar instantly ONLY from level 2 up to level 10
+        // CRITICAL RULE: Trigger crowd roar instantly ONLY from level 2 up to level 10
         if (currentPhase >= 2 && currentPhase <= 10) {
             play("crowd_cheer", { volume: 0.45 });
         }
@@ -1163,17 +1203,17 @@ scene("game", () => {
         if (currentPhase === 7) phaseText = "QUARTER FINALS";
         if (currentPhase === 10) phaseText = "THE WORLD CUP FINAL";
 
-        // 🌟 1. Reset and update the main foreground label
+        // 1. Reset and update the main foreground label
         phaseLabel.text = phaseText;
         phaseLabel.scale = vec2(2);
         phaseLabel.pos = center();
 
-        // 🌟 2. Reset and update the background shadow layer so it doesn't say "GROUP STAGE"
+        // 2. Reset and update the background shadow layer so it doesn't say "GROUP STAGE"
         phaseLabelShadow.text = phaseText;
         phaseLabelShadow.scale = vec2(2);
         phaseLabelShadow.pos = center().add(3, 3);
 
-        // 🌟 3. Tween them both up to the top header position in perfect unison
+        // 3. Tween them both up to the top header position in perfect unison
         wait(1.5, () => {
             tween(phaseLabel.pos, vec2(width() / 2, 36), 1, (p) => {
                 phaseLabel.pos = p;
@@ -1276,11 +1316,13 @@ scene("game", () => {
             };
 
             const refreshShop = () => {
-                // FIX: Make sure the shop refresh doesn't purge the title shadow asset prematurely
+                // Making sure the shop refresh doesn't purge the title shadow asset prematurely
                 shopUIComponents.forEach(c => { if (c !== backdrop && c !== title && c !== titleShadow) c.destroy(); });
-                let rateCost = (upgFireRateLevel + 1) * 25;
-                let speedCost = (upgSpeedLevel + 1) * 20;
-                let magnetCost = (upgMagnetLevel + 1) * 15;
+
+                // ARCADE MODE: Slashed prices for faster progression
+                let rateCost = (upgFireRateLevel + 1) * 10;   // Down from 25
+                let speedCost = (upgSpeedLevel + 1) * 10;     // Down from 20
+                let magnetCost = (upgMagnetLevel + 1) * 5;    // Down from 15
 
                 createUpgradeRow("Striking Speed", `Lv ${upgFireRateLevel}`, rateCost, -150, false, () => { upgFireRateLevel++; fireRate = Math.max(0.15, 0.6 - (upgFireRateLevel * 0.07)); });
                 createUpgradeRow("Running Speed", `Lv ${upgSpeedLevel}`, speedCost, -100, false, () => { upgSpeedLevel++; playerSpeed = 180 + (upgSpeedLevel * 25); });
@@ -1289,14 +1331,15 @@ scene("game", () => {
                 const separator = add([text("--- ENDGAME TALENT TIER ---", { size: 14, font: "bebas" }), pos(center().x, center().y + 10), anchor("center"), color(255, 215, 0), outline(1, rgb(12, 10, 5)), fixed(), z(201)]);
                 shopUIComponents.push(separator);
 
-                createUpgradeRow("Shotgun Tactic (3-Way)", hasShotgun ? "OWNED" : "TACTIC", 80, 55, hasShotgun, () => { hasShotgun = true; });
-                createUpgradeRow("Energy Shield (1 Hit)", hasShield ? "OWNED" : "TACTIC", 110, 105, hasShield, () => { hasShield = true; shieldActive = true; });
-                createUpgradeRow("Piercing Ball (Drill)", hasPiercing ? "OWNED" : "TACTIC", 140, 155, hasPiercing, () => { hasPiercing = true; });
+                // ARCADE MODE: Slashed tactical prices so players can actually buy them before dying
+                createUpgradeRow("Shotgun Tactic (3-Way)", hasShotgun ? "OWNED" : "TACTIC", 40, 55, hasShotgun, () => { hasShotgun = true; }); // Down from 80
+                createUpgradeRow("Energy Shield (1 Hit)", hasShield ? "OWNED" : "TACTIC", 60, 105, hasShield, () => { hasShield = true; shieldActive = true; }); // Down from 110
+                createUpgradeRow("Piercing Ball (Drill)", hasPiercing ? "OWNED" : "TACTIC", 75, 155, hasPiercing, () => { hasPiercing = true; }); // Down from 140
             };
 
             refreshShop();
 
-            // FIX: Stored exit message shadow in a variable and added it to tracker list
+            // Storing exit message shadow in a variable and added it to tracker list
             const exitShadow = add([text("PRESS [E] TO RESUME MATCH", { size: 14, font: "bebas" }), pos(center().x + 1.5, center().y + 226.5), anchor("center"), color(10, 10, 10), opacity(0.6), fixed(), z(200)]);
             const exitTip = add([text("PRESS [E] TO RESUME MATCH", { size: 14, font: "bebas" }), pos(center().x, center().y + 225), anchor("center"), color(190, 215, 235), outline(1, rgb(15, 18, 20)), fixed(), z(201)]);
 
@@ -1339,33 +1382,46 @@ scene("game", () => {
 
     onCollide("player", "goldenball", (p, cr) => {
         destroy(cr);
-
-        // Play premium chime sound effect
         play("chime", { volume: 0.5 });
 
         goldenBallsCollected++;
-        let requiredBalls = currentPhase * 5;
+
+        // 1. Calculate dynamic goal (5 balls per phase)
+        const requiredBalls = currentPhase * 5;
 
         if (currentPhase < 10) {
             if (goldenBallsCollected >= requiredBalls) {
                 currentPhase++;
                 goldenBallsCollected = 0;
+
+                // Trigger difficulty escalation function
                 advancePhase();
+
+                // Add visual feedback for the new phase
+                add([
+                    text(`NEW STAGE: ${getPhaseName(currentPhase)}`, { size: 32, font: "bebas" }),
+                    pos(center().x, center().y - 100),
+                    anchor("center"),
+                    color(255, 215, 0),
+                    lifespan(2, { fade: 0.5 }),
+                    fixed(),
+                    z(200)
+                ]);
             }
-            crystalLabel.text = `${goldenBallsCollected} / ${3 + currentPhase * 2}`;
+            crystalLabel.text = `${goldenBallsCollected} / ${requiredBalls}`;
         } else {
-            if (goldenBallsCollected >= requiredBalls) {
-                gameAmbience.stop(); // 🌟 Safely stop stadium atmosphere
+            // WINNING CONDITION
+            if (goldenBallsCollected >= 50) { // Goal reached for Phase 10
+                gameAmbience.stop();
                 go("win", score);
             }
-            crystalLabel.text = `WINNER`;
         }
     });
 
     onCollide("player", "foulZone", (p, t) => {
         if (shieldActive) { shieldActive = false; shieldCooldown = 30; destroy(t); spawnParticles(p.pos, rgb(255, 255, 255)); return; }
         destroy(player);
-        gameAmbience.stop(); // 🌟 Safely stop stadium atmosphere
+        gameAmbience.stop(); // Safely stop stadium atmosphere
         go("lose", score, currentPhase);
     });
 
