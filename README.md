@@ -1,53 +1,36 @@
-# ⚽ FIFA Survivor
+# ⚽ FIFA Survivor 
+**A Competitive Arcade Survival Experience**
 
-An intense, action-packed retro arcade football survival game where you dodge rivals, collect golden balls, and fight for a spot on the global stage. Built using the **Kaboom.js** engine and powered by a live cloud backend.
+![Gameplay Screenshot](sprites/SS.png) 
 
-## 🚀 Live Demo
-👉 https://mdfahimhassan.github.io/FIFA-Survivor/
+## 📖 Project Overview
+Developed as a solo initiative representing the **Research & Development Department** of BUCC (BRAC University Computer Club) for the Club Fair of Summer 2026, **FIFA Survivor** is a high-octane 2D web game built to test player reflexes and real-time strategic decision-making. 
 
----
+The core directive was to maximize **audience engagement**. Instead of a static single-player experience, the game features a custom-engineered live, cloud-synced global leaderboard. This transforms the game from a solo activity into a dynamic, crowd-driven competition where attendees can actively fight to dethrone the current high score on the show floor.
 
-## 🕹️ Gameplay & Controls
-You are the Manager. Your goal is simple: survive the stadium onslaught, gather treasure, and rack up the highest score possible before being slide-tackled by incoming defenders.
+## ✨ Core Features
+* **☁️ Live Global Leaderboard:** Integrated natively with Google Firestore, fetching and updating the Top 5 players in real-time to drive continuous crowd engagement.
+* **🛒 Dynamic Strategy Room (Shop):** Players must balance risk and reward by spending their hard-earned score on mid-game stat upgrades (Speed, Fire Rate, Magnet Radius) or saving up for Endgame Tactics (Shotgun, Energy Shield, Piercing Ball).
+* **📈 Scaling Difficulty Engine:** The game engine dynamically increases enemy spawn rates, speeds, and boss-tier defenders the longer the player survives.
+* **🎨 Premium UI/UX:** Features a custom loading sequence, smooth state transitions, and responsive scaling to fit any monitor perfectly.
 
-* **Move:** `W` `A` `S` `D` or `Arrow Keys`
-* **Special Skill (Bicycle AoE):** `Spacebar` (Clears nearby defenders in a massive kinetic radius)
-* **Aim/Shoot:** Automatic or Mouse tracking
+## 🛠️ Technology Stack
+* **Game Engine:** Kaboom.js (Optimized for 60FPS 2D canvas rendering)
+* **Backend / Database:** Firebase Firestore (Real-time NoSQL cloud database)
+* **Languages:** JavaScript (ES6+), HTML5, CSS3
+* **Deployment:** GitHub Pages 
 
----
+## 🎮 How to Play
+1. **Move:** `[ W A S D ]` or `[ ARROW KEYS ]`
+2. **Shoot:** Automatic Target Acquisition
+3. **Special Skill:** `[ SPACEBAR ]` (Deploy Kinetic Bicycle AoE Cleave)
+4. **Strategy Room:** `[ E ]` (Pause the game and purchase upgrades)
 
-## 🛠️ Tech Stack & Architecture
+**The Objective:** Survive the endless horde of defenders. Collect golden balls to build your economy. Buy upgrades to survive longer. Dethrone the #1 player on the Global Leaderboard. 
 
-This project marks a transition from a simple local browser script to a full-stack, cloud-connected web application:
-
-* **Frontend Engine:** [Kaboom.js (v3000.1.17)](https://kaboomjs.com/) — Utilized for 60FPS fluid canvas rendering, arcade physics, collision matrices, and smooth particle systems.
-* **Database Integration:** [Google Firebase Firestore](https://firebase.google.com/) — A real-time NoSQL cloud database used to store global match records safely using custom secure public test rules.
-* **Dynamic Tagging:** Built-in asynchronous cloud querying logic that automatically tags duplicate player usernames (e.g., `Ren#01`, `Ren#02`) to ensure completely unique entries on the competitive leaderboard.
-
----
-
-## 💾 Local Setup & Configuration
-
-To run this project locally on your machine:
-
-1. Clone this repository:
-   ```bash
-   git clone [https://github.com/MdFahimHassan/FIFA-Survivor.git]
-   
-Open index.html inside any modern web browser (or run it using VS Code's Live Server extension).
-
-⚠️ Note: To connect to the database, ensure your own localized secret web app configuration object keys are correctly initialized via firebase.initializeApp(firebaseConfig) near the top of your core script file.
-
----
-
-## 🏆 Current Feature Set
-
-○ Ultra-smooth looping 60FPS graphical star fields and canvas layering.
-
-○ Immersive stadium audio ambiance and responsive UI hover sound effects.
-
-○ Interactive team selection screen featuring global football federations.
-
-○ Custom prompt-handling logic linked to live database query snapshot counts.
-
-○ Automated schema-less cloud upload on game-over scenes.
+## ⚙️ Local Installation (For Developers)
+If you wish to run the game locally:
+1. Clone this repository: `git clone https://github.com/yourusername/fifa-survivor.git`
+2. Open the directory in your preferred IDE (e.g., VS Code).
+3. Start a local live server to avoid CORS canvas errors.
+4. The Firebase configuration is initialized safely via environment references.
